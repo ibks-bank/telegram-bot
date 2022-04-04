@@ -1,15 +1,30 @@
 package app
 
-import "context"
+import (
+	"encoding/json"
 
-type SignInRequest struct {
-	Token string
+	"github.com/ibks-bank/libs/cerr"
+)
+
+type signInRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
-type SignInResponse struct {
-	Token string
+func (req *signInRequest) Marshall() []byte {
+	raw, _ := json.Marshal(req)
+	return raw
 }
 
-func (a *app) SignIn(ctx context.Context, request *SignInRequest) (*SignInResponse, error) {
-	return &SignInResponse{Token: request.Token}, nil
+func (a *app) parseSignInRequest(request []string) (*signInRequest, error) {
+	if len(request) != 2 {
+		return nil, cerr.New("wrong number of args")
+	}
+
+	return &signInRequest{Email: request[0], Password: request[1]}, nil
+}
+
+func (a *app) signIn(req *signInRequest) error {
+	_, err := a.post(a.bankAccountUrl+"/v1/auth/sign-in", "", req)
+	return cerr.Wrap(err, "can't do request")
 }
