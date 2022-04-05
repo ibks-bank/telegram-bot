@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -11,50 +10,48 @@ type body interface {
 	Marshall() []byte
 }
 
-func (a *app) get(url, token string) ([]byte, error) {
-	httpReq, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("x-auth-token", token)
-
-	client := http.Client{}
-	resp, err := client.Do(httpReq)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return bodyBytes, nil
+type tgResponse interface {
+	beautify() string
 }
 
-func (a *app) post(url, token string, body body) ([]byte, error) {
-	httpReq, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body.Marshall()))
+func get(url, token string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("x-auth-token", token)
+	return send(prepareHeaders(req, "Content-Type", "application/json", "x-auth-token", token))
+}
+
+func post(url, token string, body body) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(body.Marshall()))
+	if err != nil {
+		return nil, err
+	}
+
+	return send(prepareHeaders(req, "Content-Type", "application/json", "x-auth-token", token))
+}
+
+func send(req *http.Request) ([]byte, error) {
 
 	client := http.Client{}
-	resp, err := client.Do(httpReq)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
+	return io.ReadAll(resp.Body)
+}
+
+func prepareHeaders(req *http.Request, kvHeaders ...string) *http.Request {
+	if len(kvHeaders)%2 == 1 {
+		return req
 	}
 
-	return bodyBytes, nil
+	for i := 0; i < len(kvHeaders)-2; i += 2 {
+		req.Header.Set(kvHeaders[i], kvHeaders[i+1])
+	}
+
+	return req
 }

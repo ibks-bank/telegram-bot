@@ -12,13 +12,17 @@ type submitCodeRequest struct {
 	Code     string `json:"code"`
 }
 
+func (req *submitCodeRequest) Marshall() []byte {
+	raw, _ := json.Marshal(req)
+	return raw
+}
+
 type submitCodeResponse struct {
 	Token string `json:"token"`
 }
 
-func (req *submitCodeRequest) Marshall() []byte {
-	raw, _ := json.Marshal(req)
-	return raw
+func (resp *submitCodeResponse) beautify() string {
+	return resp.Token
 }
 
 func (a *app) parseSubmitCodeRequest(request []string) (*submitCodeRequest, error) {
@@ -34,7 +38,7 @@ func (a *app) parseSubmitCodeRequest(request []string) (*submitCodeRequest, erro
 }
 
 func (a *app) submitCode(req *submitCodeRequest) (*submitCodeResponse, error) {
-	respRaw, err := a.post(a.profileUrl+"/v1/auth/submit-code", "", req)
+	respRaw, err := post(a.profileUrl+"/v1/auth/submit-code", "", req)
 	if err != nil {
 		return nil, cerr.Wrap(err, "can't do request")
 	}

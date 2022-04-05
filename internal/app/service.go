@@ -47,7 +47,6 @@ func (a *app) Run() {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, cerr.Wrap(err, "can't handle message").Error())
 			a.bot.Send(msg)
 		}
-
 	}
 }
 
@@ -59,6 +58,8 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 	}
 	args := splitted[1:]
 
+	var resp tgResponse
+
 	switch command {
 	case "/sign_in":
 
@@ -67,12 +68,10 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't parse request")
 		}
 
-		err = a.signIn(req)
+		resp, err = a.signIn(req)
 		if err != nil {
 			return cerr.Wrap(err, "can't sign in")
 		}
-
-		a.bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Success! Check your email for verification code."))
 
 	case "/submit_code":
 
@@ -81,14 +80,62 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't parse request")
 		}
 
-		resp, err := a.submitCode(req)
+		resp, err = a.submitCode(req)
 		if err != nil {
 			return cerr.Wrap(err, "can't submit code")
 		}
 
-		a.bot.Send(tgbotapi.NewMessage(msg.Chat.ID, resp.Token))
+	case "/passport":
+
+		req, err := a.parseGetPassportRequest(args)
+		if err != nil {
+			return cerr.Wrap(err, "can't parse request")
+		}
+
+		resp, err = a.getPassport(req)
+		if err != nil {
+			return cerr.Wrap(err, "can't get passport")
+		}
+
+	case "/get_account":
+
+		req, err := a.parseGetAccountRequest(args)
+		if err != nil {
+			return cerr.Wrap(err, "can't parse request")
+		}
+
+		resp, err = a.getAccount(req)
+		if err != nil {
+			return cerr.Wrap(err, "can't get account")
+		}
+
+	case "/get_accounts":
+
+		req, err := a.parseGetAccountsRequest(args)
+		if err != nil {
+			return cerr.Wrap(err, "can't parse request")
+		}
+
+		resp, err = a.getAccounts(req)
+		if err != nil {
+			return cerr.Wrap(err, "can't get accounts")
+		}
+
+	case "/pay":
+
+		req, err := a.parsePayRequest(args)
+		if err != nil {
+			return cerr.Wrap(err, "can't parse request")
+		}
+
+		resp, err = a.pay(req)
+		if err != nil {
+			return cerr.Wrap(err, "can't pay")
+		}
 
 	}
+
+	a.bot.Send(tgbotapi.NewMessage(msg.Chat.ID, resp.beautify()))
 
 	return nil
 }
