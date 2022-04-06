@@ -21,12 +21,17 @@ type getAccountResponse struct {
 func (resp *getAccountResponse) beautify() string {
 	currency := formatCurrency(resp.Currency)
 
+	balance := "0"
+	if resp.Balance != "" {
+		balance = resp.Balance
+	}
+
 	return fmt.Sprintf(
 		"Info about your bank account (%s):\n"+
 			"Balance: %s %s\n"+
 			"Limit: %s %s\n",
 		resp.ID,
-		resp.Balance, currency,
+		balance, currency,
 		resp.Limit, currency,
 	)
 }

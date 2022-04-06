@@ -32,6 +32,9 @@ func (a *app) parseSignInRequest(request []string) (*signInRequest, error) {
 }
 
 func (a *app) signIn(req *signInRequest) (*signInResponse, error) {
-	_, err := post(a.bankAccountUrl+"/v1/auth/sign-in", "", req)
-	return &signInResponse{}, cerr.Wrap(err, "can't do request")
+	_, err := post(a.profileUrl+"/v1/auth/sign-in", "", req)
+	if err != nil {
+		return nil, cerr.Wrap(err, "can't do request")
+	}
+	return &signInResponse{}, nil
 }

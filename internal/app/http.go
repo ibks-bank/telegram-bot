@@ -20,7 +20,7 @@ func get(url, token string) ([]byte, error) {
 		return nil, err
 	}
 
-	return send(prepareHeaders(req, "Content-Type", "application/json", "x-auth-token", token))
+	return send(prepareHeaders(req, "Content-Type", "application/json", "X-Auth-Token", token))
 }
 
 func post(url, token string, body body) ([]byte, error) {
@@ -29,7 +29,7 @@ func post(url, token string, body body) ([]byte, error) {
 		return nil, err
 	}
 
-	return send(prepareHeaders(req, "Content-Type", "application/json", "x-auth-token", token))
+	return send(prepareHeaders(req, "Content-Type", "application/json", "X-Auth-Token", token))
 }
 
 func send(req *http.Request) ([]byte, error) {
@@ -49,7 +49,7 @@ func prepareHeaders(req *http.Request, kvHeaders ...string) *http.Request {
 		return req
 	}
 
-	for i := 0; i < len(kvHeaders)-2; i += 2 {
+	for i := 0; i < len(kvHeaders)-1; i += 2 {
 		req.Header.Set(kvHeaders[i], kvHeaders[i+1])
 	}
 

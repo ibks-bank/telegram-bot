@@ -73,7 +73,7 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't sign in")
 		}
 
-	case "/submit_code":
+	case "/code":
 
 		req, err := a.parseSubmitCodeRequest(args)
 		if err != nil {
@@ -97,7 +97,7 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't get passport")
 		}
 
-	case "/get_account":
+	case "/account":
 
 		req, err := a.parseGetAccountRequest(args)
 		if err != nil {
@@ -109,7 +109,7 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't get account")
 		}
 
-	case "/get_accounts":
+	case "/accounts":
 
 		req, err := a.parseGetAccountsRequest(args)
 		if err != nil {

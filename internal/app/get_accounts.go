@@ -23,7 +23,7 @@ func (resp *getAccountsResponse) beautify() string {
 }
 
 func (a *app) parseGetAccountsRequest(request []string) (*getAccountsRequest, error) {
-	if len(request) != 2 {
+	if len(request) != 1 {
 		return nil, cerr.New("wrong number of args")
 	}
 

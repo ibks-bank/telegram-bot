@@ -8,11 +8,11 @@ func formatDate(date time.Time) string {
 
 func formatCurrency(cur string) string {
 	switch cur {
-	case "rub":
+	case "CURRENCY_RUB":
 		return "₽"
-	case "eur":
+	case "CURRENCY_EURO":
 		return "€"
-	case "usd":
+	case "CURRENCY_DOLLAR_US":
 		return "$"
 	default:
 		return cur

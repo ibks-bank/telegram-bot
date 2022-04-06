@@ -16,11 +16,11 @@ type getPassportResponse struct {
 	ID         int64     `json:"id"`
 	Series     string    `json:"series"`
 	Number     string    `json:"number"`
-	FirstName  string    `json:"first_name"`
-	MiddleName string    `json:"middle_name"`
-	LastName   string    `json:"last_name"`
-	IssuedBy   string    `json:"issued_by"`
-	IssuedAt   time.Time `json:"issued_at"`
+	FirstName  string    `json:"firstName"`
+	MiddleName string    `json:"middleName"`
+	LastName   string    `json:"lastName"`
+	IssuedBy   string    `json:"issuedBy"`
+	IssuedAt   time.Time `json:"issuedAt"`
 	Address    string    `json:"address"`
 	Birthplace string    `json:"birthplace"`
 	Birthdate  time.Time `json:"birthdate"`
