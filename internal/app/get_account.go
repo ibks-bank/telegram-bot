@@ -31,19 +31,18 @@ func (resp *getAccountResponse) beautify() string {
 			"Balance: %s %s\n"+
 			"Limit: %s %s\n",
 		resp.ID,
-		balance, currency,
-		resp.Limit, currency,
+		convertCopTuRub(balance), currency,
+		convertCopTuRub(resp.Limit), currency,
 	)
 }
 
 func (a *app) parseGetAccountRequest(request []string) (*getAccountRequest, error) {
-	if len(request) != 2 {
+	if len(request) != 1 {
 		return nil, cerr.New("wrong number of args")
 	}
 
 	return &getAccountRequest{
 		AccountID: request[0],
-		Token:     request[1],
 	}, nil
 }
 

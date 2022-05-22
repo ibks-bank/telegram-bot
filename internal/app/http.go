@@ -2,6 +2,8 @@ package app
 
 import (
 	"bytes"
+	"encoding/json"
+	"github.com/ibks-bank/libs/cerr"
 	"io"
 	"net/http"
 )
@@ -12,6 +14,10 @@ type body interface {
 
 type tgResponse interface {
 	beautify() string
+}
+
+type respError struct {
+	Error string `json:"error"`
 }
 
 func get(url, token string) ([]byte, error) {
@@ -41,7 +47,22 @@ func send(req *http.Request) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	return io.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	respErr := new(respError)
+	err = json.Unmarshal(respBody, &respErr)
+	if err != nil {
+		return nil, err
+	}
+
+	if respErr.Error != "" {
+		return nil, cerr.New(respErr.Error)
+	}
+
+	return respBody, nil
 }
 
 func prepareHeaders(req *http.Request, kvHeaders ...string) *http.Request {

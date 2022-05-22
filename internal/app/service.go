@@ -8,9 +8,16 @@ import (
 	"github.com/ibks-bank/libs/cerr"
 )
 
+type store interface {
+	InsertUser(username string) error
+	UpdateToken(username, token string) error
+	GetToken(username string) (string, error)
+}
+
 type app struct {
 	bot          *tgbotapi.BotAPI
 	updateConfig tgbotapi.UpdateConfig
+	store        store
 
 	profileUrl     string
 	bankAccountUrl string
@@ -19,12 +26,14 @@ type app struct {
 func New(
 	bot *tgbotapi.BotAPI,
 	updateConfig tgbotapi.UpdateConfig,
+	store store,
 	profileUrl, bankAccountUrl string,
 ) *app {
 
 	return &app{
 		bot:            bot,
 		updateConfig:   updateConfig,
+		store:          store,
 		profileUrl:     profileUrl,
 		bankAccountUrl: bankAccountUrl,
 	}
@@ -53,12 +62,20 @@ func (a *app) Run() {
 func (a *app) handle(msg *tgbotapi.Message) error {
 	splitted := strings.Split(msg.Text, " ")
 	command := splitted[0]
-	if command == msg.Text {
-		return cerr.New("wrong args")
+	//if command == msg.Text {
+	//	return cerr.New("wrong args")
+	//}
+	args := make([]string, 0)
+	if len(splitted) > 1 {
+		args = append(args, splitted[1:]...)
 	}
-	args := splitted[1:]
 
 	var resp tgResponse
+
+	err := a.store.InsertUser(msg.From.UserName)
+	if err != nil {
+		return cerr.Wrap(err, "can't insert user")
+	}
 
 	switch command {
 	case "/sign_in":
@@ -85,14 +102,26 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't submit code")
 		}
 
-	case "/passport":
-
-		req, err := a.parseGetPassportRequest(args)
+		err = a.store.UpdateToken(msg.From.UserName, resp.beautify())
 		if err != nil {
-			return cerr.Wrap(err, "can't parse request")
+			return cerr.Wrap(err, "can't update token")
 		}
 
-		resp, err = a.getPassport(req)
+		resp = &submitCodeResponse{Token: "Successfully logged in!"}
+
+	case "/passport":
+
+		//req, err := a.parseGetPassportRequest(args)
+		//if err != nil {
+		//	return cerr.Wrap(err, "can't parse request")
+		//}
+
+		token, err := a.store.GetToken(msg.From.UserName)
+		if err != nil {
+			return cerr.Wrap(err, "can't get token")
+		}
+
+		resp, err = a.getPassport(&getPassportRequest{Token: token})
 		if err != nil {
 			return cerr.Wrap(err, "can't get passport")
 		}
@@ -104,6 +133,12 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't parse request")
 		}
 
+		token, err := a.store.GetToken(msg.From.UserName)
+		if err != nil {
+			return cerr.Wrap(err, "can't get token")
+		}
+		req.Token = token
+
 		resp, err = a.getAccount(req)
 		if err != nil {
 			return cerr.Wrap(err, "can't get account")
@@ -111,12 +146,17 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 
 	case "/accounts":
 
-		req, err := a.parseGetAccountsRequest(args)
+		//req, err := a.parseGetAccountsRequest(args)
+		//if err != nil {
+		//	return cerr.Wrap(err, "can't parse request")
+		//}
+
+		token, err := a.store.GetToken(msg.From.UserName)
 		if err != nil {
-			return cerr.Wrap(err, "can't parse request")
+			return cerr.Wrap(err, "can't get token")
 		}
 
-		resp, err = a.getAccounts(req)
+		resp, err = a.getAccounts(&getAccountsRequest{Token: token})
 		if err != nil {
 			return cerr.Wrap(err, "can't get accounts")
 		}
@@ -128,10 +168,20 @@ func (a *app) handle(msg *tgbotapi.Message) error {
 			return cerr.Wrap(err, "can't parse request")
 		}
 
+		token, err := a.store.GetToken(msg.From.UserName)
+		if err != nil {
+			return cerr.Wrap(err, "can't get token")
+		}
+		req.Token = token
+
 		resp, err = a.pay(req)
 		if err != nil {
 			return cerr.Wrap(err, "can't pay")
 		}
+
+	default:
+
+		resp = &defaultResp{text: "wrong command"}
 
 	}
 

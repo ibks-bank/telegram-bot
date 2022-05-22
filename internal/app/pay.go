@@ -7,9 +7,10 @@ import (
 )
 
 type payRequest struct {
-	Token  string `json:"-"`
-	Payee  string `json:"payee"`
-	Amount string `json:"amount"`
+	Token     string `json:"-"`
+	AccountID string `json:"accountID"`
+	Payee     string `json:"payee"`
+	Amount    string `json:"amount"`
 }
 
 func (req *payRequest) Marshall() []byte {
@@ -30,9 +31,9 @@ func (a *app) parsePayRequest(request []string) (*payRequest, error) {
 	}
 
 	return &payRequest{
-		Token:  request[2],
-		Payee:  request[0],
-		Amount: request[1],
+		AccountID: request[0],
+		Payee:     request[1],
+		Amount:    request[2],
 	}, nil
 }
 
